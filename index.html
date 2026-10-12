@@ -37,6 +37,7 @@
     background:#141020; border:1px solid #6b5320; border-radius:6px; font-size:14px; line-height:1.9; color:#c8b890;
   }
   #rulesModal h3 { color:#d4af37; margin:10px 0 4px; }
+  #rulesModal b { color:#ffe9a0; }
   #rulesModal .close { float:right; cursor:pointer; color:#d4af37; font-size:20px; }
   #gameScreen { display:none; max-width:1100px; margin:0 auto; padding:14px 18px 30px; }
   header { text-align:center; padding:6px 0 12px; border-bottom:1px solid rgba(212,175,55,.25); margin-bottom:14px; }
@@ -157,7 +158,53 @@
     合成技均为一次性：打出后即消耗，需重新累计合成。唯「回旋镖」例外：一经合成永久解锁，可无限使用。
     <h3>特殊机制</h3>
     黑洞：三回合共3伤害。吸取/虫洞：夺取对手本回合技能下次使用。冰冻：封锁行动两回合。金身：无敌三回合。
-    伽玛射线：20费彩蛋，直接获胜。烈焰、冰冻、大闪、大雷及所有合成技均不耗资源。
+    酒：下一次攻击伤害翻倍。伽玛射线：20费彩蛋，直接获胜。烈焰、冰冻、大闪、大雷及所有合成技均不耗资源。
+    <h3>技能一览 · 基础技</h3>
+    <b>集气</b>（0费·等效0）：费用+1。<br>
+    <b>酒</b>（0费·等效0）：下一次攻击伤害翻倍，不叠加，未造成伤害不消耗；自身无法抵挡。<br>
+    <b>防御</b>（0费·等效0）：防+1；抵挡≤1费攻击（含飞刀）；可压制感染/生化前两阶段；会被回旋镖无视。<br>
+    <b>飞刀</b>（0费·等效0）：0.5伤害；可抵消≤1费技能但唯独不能抵消刀；与飞刀/回旋镖互撞双方受创；3次合成回旋镖。<br>
+    <b>长枪</b>（1费·等效1）：1伤害；被你吃反弹、被汉堡系克制；2次合成冲锋。<br>
+    <b>刀</b>（1费·等效1）：1伤害；可劈落飞刀；2次合成大刀。<br>
+    <b>汉堡</b>（1费·等效1）：抵挡≤1费攻击；对手出你吃/大你吃则合成计数额外+1；3次合成汉堡王。<br>
+    <b>你吃</b>（1费·等效1）：抵挡≤3费攻击；反弹长枪/冲锋/感染/生化/气功；2次合成大你吃。<br>
+    <b>感染</b>（1费·等效1）：抵挡≤1费攻击；对手次回合需出防御/大盾/金身压制，否则出招前先受1伤害；冷却3回合；2次合成生化。<br>
+    <b>气功</b>（2费·等效2）：1伤害；会被你吃反弹；2次合成叶问。<br>
+    <b>治疗</b>（2费·等效2）：恢复0.5生命，抵挡≤3费攻击；身中感染/生化时先回血再扣侵蚀；对手出你吃系则恢复1。<br>
+    <b>吸取</b>（2费·等效2）：夺取对手本回合≤3费技能，下回合自己可用一次（吸到集气得1费、吸到防御得1防）；2次合成大吸取。<br>
+    <b>收集</b>（2费·等效2）：抵挡≤3费攻击（若抵挡3费技能则灵阵被破）；布阵当回合不产费，之后3回合每回合+1费，期间无法再布阵。<br>
+    <b>龙爪</b>（3费购2次·等效1）：每回合出一次，1伤害；两个龙爪打出后免费获得一个降龙。<br>
+    <b>降龙</b>（3费·等效3）：1伤害；2次合成龙怒。<br>
+    <b>观音</b>（4费购2次·等效2）：每回合出一次，1伤害，可抵消≤3费攻击；两个观音打出后免费获得一个如来（单段）。<br>
+    <b>如来</b>（4费·等效4）：三连击共3伤害；≥3费防御全挡，2费以下防御仅挡一段。<br>
+    <b>黑洞</b>（5费·等效5）：本回合起连续3回合各造成1伤害（共3）。<br>
+    <b>伽玛射线</b>（20费·等效20）：彩蛋技，直接消灭对手。<br>
+    <b>火焰</b>（2防·等效1）：1伤害；若对手用防御抵挡，其下2回合禁用防御；使寒冰/冰冻的减益失效，但攻击仍被它们挡下；2次合成烈焰。<br>
+    <b>寒冰</b>（2防·等效1）：抵挡≤1费攻击；对手2回合伤害减半；被你吃/大你吃/火焰/烈焰克制（仅减半失效，抵挡不变）；2次合成冰冻。<br>
+    <b>小电</b>（3防·等效2）：1伤害；2次合成大闪。<br>
+    <b>雷霆</b>（4防·等效3）：1伤害；2次合成大雷。<br>
+    <b>大盾</b>（2防·等效2）：抵挡≤3费攻击；可压制感染/生化（含第三阶段）；2次合成金身。
+    <h3>技能一览 · 合成技（一次性，唯回旋镖永久解锁）</h3>
+    <b>回旋镖</b>（等效1·飞刀×3）：1伤害，抵挡≤1费，无视普通防御；与飞刀/回旋镖互撞双方受创；永久解锁可无限使用。<br>
+    <b>冲锋</b>（等效4·长枪×2）：1伤害。<br>
+    <b>大刀</b>（等效2·刀×2）：1伤害；2次合成巨刀。<br>
+    <b>巨刀</b>（等效6·大刀×2）：1伤害。<br>
+    <b>汉堡王</b>（等效5·汉堡×3）：1伤害。<br>
+    <b>大你吃</b>（等效3·你吃×2）：抵挡≤4费攻击，反弹同你吃；2次合成你吃王。<br>
+    <b>你吃王</b>（等效6·大你吃×2）：1伤害。<br>
+    <b>生化</b>（等效3·感染×2）：抵挡≤3费攻击；三阶段侵蚀，每回合未压制先受1伤害——前两阶段需防御/大盾/金身，第三阶段仅大盾/金身；冷却3回合；被你吃反弹。<br>
+    <b>叶问</b>（等效6·气功×2）：1伤害。<br>
+    <b>大吸取</b>（等效3·吸取×2）：夺取≤4费技能；2次合成虫洞。<br>
+    <b>虫洞</b>（等效6·大吸取×2）：夺取≤7费技能，并反弹其中的攻击。<br>
+    <b>龙怒</b>（等效7·降龙×2）：1伤害。<br>
+    <b>烈焰</b>（等效2·火焰×2）：1伤害；使寒冰/冰冻的减益失效；寒冰挡不住它（等效2>1），冰冻可挡下它；附带火焰封防。<br>
+    <b>冰冻</b>（等效2·寒冰×2）：抵挡≤2费攻击；冰封对手本回合与下回合（技能失效且不耗资源）且伤害减半；被≥3费攻击则冰封失效仅留减半；你吃/大你吃/火焰/烈焰可使其冰封与寒气全失效（但攻击仍被挡下）。<br>
+    <b>大闪</b>（等效3·小电×2）：1伤害。<br>
+    <b>大雷</b>（等效4·雷霆×2）：1伤害。<br>
+    <b>金身</b>（等效0·大盾×2）：本回合起三回合无敌；可压制感染/生化。
+    <h3>技能一览 · 馈赠技</h3>
+    <b>降龙·赐</b>（0费·等效3）：龙爪集齐赠品，1伤害，计入降龙合成计数。<br>
+    <b>如来·赐</b>（0费·等效4）：观音集齐赠品，单段1伤害。
   </div>
 </div>
 
@@ -213,6 +260,7 @@
 /* ==================== 技能定义 ==================== */
 const SKILLS = {
   jiqi:    {name:'集气',   cost:0, eq:0, type:'resource', gainEnergy:1, desc:'获得1费'},
+  jiu:     {name:'酒',     cost:0, eq:0, type:'boost', desc:'下一次攻击伤害翻倍（不叠加，未造成伤害不消耗）；自身无法抵挡伤害'},
   fangyu:  {name:'防御',   cost:0, eq:0, type:'defense', block:1, gainFang:1, desc:'抵挡1费及以下攻击(含飞刀)，获得1防；可压制感染/生化前两个阶段'},
   feidao:  {name:'飞刀',   cost:0, eq:0, type:'attack', dmg:0.5, dualHit:true, desc:'0.5伤害，可抵消≤1费技能，但不能抵消刀；与回旋镖互撞双方受创。3次合成回旋镖'},
   huixuan: {name:'回旋镖', cost:0, eq:1, type:'attack', dmg:1, block:1, breakDef:true, dualHit:true, synth:true, desc:'1伤害，可抵消≤1费，无视普通防御；与飞刀互撞双方受创'},
@@ -260,12 +308,12 @@ const SYNTH = { feidao:[3,'huixuan'], changqiang:[2,'chongfeng'], dao:[2,'dadao'
   qigong:[2,'yewen'], xiqu:[2,'daxiqu'], daxiqu:[2,'chongdong'], xianglong:[2,'longnu'],
   huoyan:[2,'lieyan'], hanbing:[2,'bingdong'], xiaodian:[2,'dashan'], leiting:[2,'dalei'], dadun:[2,'jinshen'] };
 const COUNT_ALIAS = { xianglong2:'xianglong', rulai2:'rulai' };
-const BASE_SKILLS = ['jiqi','fangyu','feidao','changqiang','dao','hanbao','nichi','ganran','qigong','zhiliao','xiqu','shouji','longzhua','xianglong','guanyin','rulai','heidong','gama','huoyan','hanbing','xiaodian','leiting','dadun'];
+const BASE_SKILLS = ['jiqi','jiu','fangyu','feidao','changqiang','dao','hanbao','nichi','ganran','qigong','zhiliao','xiqu','shouji','longzhua','xianglong','guanyin','rulai','heidong','gama','huoyan','hanbing','xiaodian','leiting','dadun'];
 const DIFF_NAMES = { easy:'初窥弟子', normal:'登堂高手', hard:'宗师魔头' };
 
 /* ==================== 状态 ==================== */
 let P, E, turn, difficulty, over, locked;
-function newFighter(){ return { hp:1, energy:0, fang:0, counts:{}, synthCharges:{}, stolen:null,
+function newFighter(){ return { hp:1, energy:0, fang:0, counts:{}, synthCharges:{}, stolen:null, wine:0,
   freeXianglong:0, freeRulai:0, zhuaCharges:0, yinCharges:0, _healPre:false,
   dots:[], halve:0, frozen:0, noDefend:0, invincible:0, collectTurns:0, infectCD:0, _collectNew:false, _passive:0 }; }
 
@@ -542,7 +590,12 @@ function clashPair(A, B, aId, bId, an, bn, push, setANeg, setBNeg, aRefl, bRefl,
 function applyEffects(F, T, id, fn, tn, push, negated, reflected, oppSkill){
   const s = SKILLS[id];
   if (reflected){
-    if (s.dmg || s.type==='attack'){ hurt(F, effDmg(F, s.dmg||1)); push(`💥 ${fn}被自己的「${s.name}」反噬，受到 ${fmt(s.dmg||1)} 点伤害！`,'dmg'); }
+    if (s.dmg || s.type==='attack'){
+      let rd = s.dmg||1;
+      if (F.wine>0){ rd *= 2; F.wine = 0; push(`🍶 酒劲反噬，${fn}的攻势伤人伤己，伤害翻倍！`,'dmg'); }
+      rd = effDmg(F, rd);
+      hurt(F, rd); push(`💥 ${fn}被自己的「${s.name}」反噬，受到 ${fmt(rd)} 点伤害！`,'dmg');
+    }
     if (s.dot==='infect'){ addDot(F,{type:'infect'}); push(`☠ 感染之毒反噬${fn}自身！`,'dmg'); }
     if (s.dot==='bio'){ addDot(F,{type:'bio',stage:0}); push(`☠ 生化之力反噬${fn}自身！`,'dmg'); }
     return;
@@ -551,6 +604,7 @@ function applyEffects(F, T, id, fn, tn, push, negated, reflected, oppSkill){
   if (s.gainFang){ F.fang += s.gainFang; push(`🛡 ${fn}凝神「防御」，防 +1。`,'sys'); }
   if (s.heal && !F._healPre){ let h = s.heal; if (oppSkill && oppSkill.type==='reflect'){ h = 1; push(`${fn}的「治疗」受你吃激将，药效翻倍！`,'heal'); } F.hp += h; push(`🌿 ${fn}运功疗伤，生命 +${h}。`,'heal'); }
   if (s.type==='collect'){ F.collectTurns = 3; F._collectNew = true; push(`💰 ${fn}布下「收集」灵阵——本回合不产费，之后3回合每回合+1费，期间无法再布阵。`,'sys'); }
+  if (s.type==='boost'){ F.wine = 1; push(`🍶 ${fn}痛饮烈酒，豪气冲天——下一次攻击伤害翻倍！`,'gold'); }
   if (s.type==='invincible'){ F.invincible = 3; push(`✨ ${fn}催动「金身」，三回合内刀枪不入！`,'gold'); }
   if (s.halve && !negated){ T.halve = Math.max(T.halve, s.halve); push(`❄ 寒气侵体，${tn}接下来${s.halve}回合伤害减半！`,'neg'); }
   if (s.freeze && !negated && id!=='bingdong'){ T.frozen = Math.max(T.frozen, s.freeze); push(`🧊 ${tn}被「冰冻」封住经脉，${s.freeze}回合无法行动！`,'neg'); }
@@ -567,6 +621,7 @@ function applyEffects(F, T, id, fn, tn, push, negated, reflected, oppSkill){
   if (s.type==='attack' && s.dmg){
     let dmg = s.dmg;
     if (s._partialBlock){ dmg = Math.max(0, dmg-1); s._partialBlock = false; }
+    if (F.wine>0 && dmg>0){ dmg *= 2; F.wine = 0; push(`🍶 酒劲爆发！${fn}的「${s.name}」伤害翻倍！`, fn==='你'?'gold':'dmg'); }
     dmg = effDmg(F, dmg);
     if (dmg>0){ hurt(T, dmg); push(`🗡 ${fn}的「${s.name}」命中！${tn}受到 ${fmt(dmg)} 点伤害！`, fn==='你'?'gold':'dmg'); }
   }
@@ -610,7 +665,7 @@ function playerThreat(){
     const s = SKILLS[id];
     if (s.type==='attack'){
       if (s.eq > t.maxEq){ t.maxEq = s.eq; t.strongest = id; }
-      let d = s.dmg||0; if (P.halve>0) d /= 2;
+      let d = s.dmg||0; if (P.halve>0) d /= 2; if (P.wine>0) d *= 2; // 酒劲：玩家下次攻击翻倍，威胁预判需计入
       if (s.instantKill || (d >= E.hp && E.invincible<=0)) t.canKill = true;
       if (id==='feidao') t.hasFeidao = true;
     }
@@ -662,6 +717,7 @@ function aiNormal(opts){
       if (s.beatsFeidao && t.hasFeidao) v += 3;
     }
     if (id==='jiqi') v += E.energy < 2 ? 4 : 0.5;
+    if (id==='jiu') v += E.wine>0 ? 0.1 : (t.canKill ? 0.5 : 3); // 酒：安全时蓄力，已有酒劲不再喝
     if (id==='fangyu') v += E.fang < 2 ? 3 : 0.5;
     if (id==='shouji') v += (E.collectTurns<=0 && !t.canKill) ? 3 : 0;
     if (s.heal && E.hp <= 1.5) v += 6;
@@ -729,6 +785,7 @@ function aiHard(opts){
     // —— 运营（仅在无致命威胁时）——
     if (!t.canKill){
       if (id==='jiqi') v += E.energy<=1 ? 5 : (E.energy<4?2:0.2);
+      if (id==='jiu') v += E.wine>0 ? 0.1 : 4.5; // 酒：无致命威胁时蓄力，下次攻击翻倍
       if (id==='fangyu') v += E.fang<=1 ? 4 : 0.3;
       if (id==='shouji') v += (E.collectTurns<=0 && E.energy>=2 && E.energy<=6) ? 5 : 0;
       if (s.heal) v += E.hp<=1 ? 8 : (E.hp<=2?4:0);
@@ -767,6 +824,7 @@ function renderFighter(f, pre){
   document.getElementById(pre+'FangVal').textContent = f.fang;
   const st = [];
   if (f.invincible>0) st.push(['✨金身'+f.invincible,'buff']);
+  if (f.wine>0) st.push(['🍶酒劲','buff']);
   if (f.frozen>0) st.push(['🧊冰封'+f.frozen,'']);
   if (f.halve>0) st.push(['❄虚弱'+f.halve,'']);
   if (f.noDefend>0) st.push(['🔥禁防'+f.noDefend,'']);
@@ -844,7 +902,7 @@ function renderSkills(){
   }
 }
 function typeTag(s){
-  return {attack:'攻',defense:'防',reflect:'弹',resource:'资',heal:'疗',absorb:'吸',dotdef:'蚀',dot:'蚀',collect:'资',invincible:'圣'}[s.type]||'技';
+  return {attack:'攻',defense:'防',reflect:'弹',resource:'资',heal:'疗',absorb:'吸',dotdef:'蚀',dot:'蚀',collect:'资',invincible:'圣',boost:'益'}[s.type]||'技';
 }
 
 /* ==================== 特效与日志 ==================== */
