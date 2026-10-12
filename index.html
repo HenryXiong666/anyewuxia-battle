@@ -138,7 +138,7 @@
     普通费用通过「集气」「收集」获得；「防」通过「防御」获得，二者不通用。
     「收集」布阵当回合不产出费用，从下一回合起连续3回合每回合+1费，增益期间无法再次收集。
     <h3>抵消规则</h3>
-    等效费用为 n 的技能可抵消等效费用不超过 n+1 的技能。攻击互撞时，费用差≤1则两相抵消，否则低费者被破。
+    等效费用为 n 的技能可抵消等效费用不超过 n+1 的技能。攻击互撞时，费用差≤1则两相抵消，否则低费者被破；回旋镖无法抵挡等效2费攻击技能。
     特例①：飞刀可抵消≤1费技能，但唯独不能抵消「刀」——刀遇飞刀，劈落飞刀并直取对手。
     特例②：飞刀与回旋镖互撞时不抵消、双方同时受创——飞刀对飞刀各掉0.5，回旋镖对回旋镖各掉1，回旋镖对飞刀：飞刀方掉1、回旋镖方掉0.5。
     非攻击技能即使被抵消，自身效果仍然生效。
@@ -185,7 +185,7 @@
     <b>雷霆</b>（4防·等效3）：1伤害；2次合成大雷。<br>
     <b>大盾</b>（2防·等效2）：抵挡≤3费攻击；可压制感染/生化（含第三阶段）；2次合成金身。
     <h3>技能一览 · 合成技（一次性，唯回旋镖永久解锁）</h3>
-    <b>回旋镖</b>（等效1·飞刀×3）：1伤害，抵挡≤1费，无视普通防御；与飞刀/回旋镖互撞双方受创；永久解锁可无限使用。<br>
+    <b>回旋镖</b>（等效1·飞刀×3）：1伤害，抵挡≤1费，无法抵挡等效2费攻击，无视普通防御；与飞刀/回旋镖互撞双方受创；永久解锁可无限使用。<br>
     <b>冲锋</b>（等效4·长枪×2）：1伤害。<br>
     <b>大刀</b>（等效2·刀×2）：1伤害；2次合成巨刀。<br>
     <b>巨刀</b>（等效6·大刀×2）：1伤害。<br>
@@ -263,7 +263,7 @@ const SKILLS = {
   jiu:     {name:'酒',     cost:0, eq:0, type:'boost', desc:'下一次攻击伤害翻倍（不叠加）；打出任意攻击技能后即消耗，无论是否命中；自身无法抵挡伤害'},
   fangyu:  {name:'防御',   cost:0, eq:0, type:'defense', block:1, gainFang:1, desc:'抵挡1费及以下攻击(含飞刀)，获得1防；可压制感染/生化前两个阶段'},
   feidao:  {name:'飞刀',   cost:0, eq:0, type:'attack', dmg:0.5, dualHit:true, desc:'0.5伤害，可抵消≤1费技能，但不能抵消刀；与回旋镖互撞双方受创。3次合成回旋镖'},
-  huixuan: {name:'回旋镖', cost:0, eq:1, type:'attack', dmg:1, block:1, breakDef:true, dualHit:true, synth:true, desc:'1伤害，可抵消≤1费，无视普通防御；与飞刀互撞双方受创'},
+  huixuan: {name:'回旋镖', cost:0, eq:1, type:'attack', dmg:1, block:1, breakDef:true, dualHit:true, synth:true, desc:'1伤害，可抵消≤1费，无法抵挡等效2费攻击，无视普通防御；与飞刀互撞双方受创'},
   changqiang:{name:'长枪', cost:1, eq:1, type:'attack', dmg:1, desc:'1伤害，会被你吃/汉堡系克制。2次合成冲锋'},
   chongfeng:{name:'冲锋',  cost:0, eq:4, type:'attack', dmg:1, synth:true, desc:'1伤害，等效4费'},
   dao:     {name:'刀',     cost:1, eq:1, type:'attack', dmg:1, beatsFeidao:true, desc:'1伤害，可劈落飞刀。2次合成大刀'},
@@ -582,6 +582,18 @@ function clashPair(A, B, aId, bId, an, bn, push, setANeg, setBNeg, aRefl, bRefl,
     if (a.dualHit && b.dualHit){
       push(`🗡 暗器交错！「${a.name}」与「${b.name}」擦肩而过，双方同时受创！`,'sys');
       return; // 双方均不抵消，各自伤害在 applyEffects 中结算
+    }
+
+    // 回旋镖无法抵挡等效2费攻击
+    if (aId==='huixuan' && b.eq===2){
+      setANeg(true);
+      push(`⚔ ${bn}的「${b.name}」震碎了${an}的「回旋镖」！`,'dmg');
+      return;
+    }
+    if (bId==='huixuan' && a.eq===2){
+      setBNeg(true);
+      push(`⚔ ${an}的「${a.name}」震碎了${bn}的「回旋镖」！`,'gold');
+      return;
     }
 
     const diff = a.eq - b.eq;
