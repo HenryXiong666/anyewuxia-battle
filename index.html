@@ -157,11 +157,11 @@
     火焰/寒冰/小电/雷霆/大盾各×2→烈焰/冰冻/大闪/大雷/金身（无敌三回合）。
     合成技均为一次性：打出后即消耗，需重新累计合成。唯「回旋镖」例外：一经合成永久解锁，可无限使用。
     <h3>特殊机制</h3>
-    黑洞：三回合共3伤害。吸取/虫洞：夺取对手本回合技能下次使用。冰冻：封锁行动两回合。金身：无敌三回合。
-    酒：下一次攻击伤害翻倍。伽玛射线：20费彩蛋，直接获胜。烈焰、冰冻、大闪、大雷及所有合成技均不耗资源。
+    黑洞：三回合共3伤害。吸取/虫洞：夺取对手本回合技能下次使用。冰冻：封锁行动两回合。金身：自本回合起连续三回合无敌（当回合的感染/生化侵蚀也不扣血）。
+    酒：下一次攻击伤害翻倍，打出任意攻击技能后即消耗（无论是否命中）。伽玛射线：20费彩蛋，直接获胜。烈焰、冰冻、大闪、大雷及所有合成技均不耗资源。
     <h3>技能一览 · 基础技</h3>
     <b>集气</b>（0费·等效0）：费用+1。<br>
-    <b>酒</b>（0费·等效0）：下一次攻击伤害翻倍，不叠加，未造成伤害不消耗；自身无法抵挡。<br>
+    <b>酒</b>（0费·等效0）：下一次攻击伤害翻倍，不叠加；打出任意攻击技能后即消耗（无论是否命中）；自身无法抵挡。<br>
     <b>防御</b>（0费·等效0）：防+1；抵挡≤1费攻击（含飞刀）；可压制感染/生化前两阶段；会被回旋镖无视。<br>
     <b>飞刀</b>（0费·等效0）：0.5伤害；可抵消≤1费技能但唯独不能抵消刀；与飞刀/回旋镖互撞双方受创；3次合成回旋镖。<br>
     <b>长枪</b>（1费·等效1）：1伤害；被你吃反弹、被汉堡系克制；2次合成冲锋。<br>
@@ -201,7 +201,7 @@
     <b>冰冻</b>（等效2·寒冰×2）：抵挡≤2费攻击；冰封对手本回合与下回合（技能失效且不耗资源）且伤害减半；被≥3费攻击则冰封失效仅留减半；你吃/大你吃/火焰/烈焰可使其冰封与寒气全失效（但攻击仍被挡下）。<br>
     <b>大闪</b>（等效3·小电×2）：1伤害。<br>
     <b>大雷</b>（等效4·雷霆×2）：1伤害。<br>
-    <b>金身</b>（等效0·大盾×2）：本回合起三回合无敌；可压制感染/生化。
+    <b>金身</b>（等效0·大盾×2）：自本回合起连续三回合无敌，当回合的感染/生化侵蚀也不扣血；可压制感染/生化。
     <h3>技能一览 · 馈赠技</h3>
     <b>降龙·赐</b>（0费·等效3）：龙爪集齐赠品，1伤害，计入降龙合成计数。<br>
     <b>如来·赐</b>（0费·等效4）：观音集齐赠品，单段1伤害。
@@ -260,7 +260,7 @@
 /* ==================== 技能定义 ==================== */
 const SKILLS = {
   jiqi:    {name:'集气',   cost:0, eq:0, type:'resource', gainEnergy:1, desc:'获得1费'},
-  jiu:     {name:'酒',     cost:0, eq:0, type:'boost', desc:'下一次攻击伤害翻倍（不叠加，未造成伤害不消耗）；自身无法抵挡伤害'},
+  jiu:     {name:'酒',     cost:0, eq:0, type:'boost', desc:'下一次攻击伤害翻倍（不叠加）；打出任意攻击技能后即消耗，无论是否命中；自身无法抵挡伤害'},
   fangyu:  {name:'防御',   cost:0, eq:0, type:'defense', block:1, gainFang:1, desc:'抵挡1费及以下攻击(含飞刀)，获得1防；可压制感染/生化前两个阶段'},
   feidao:  {name:'飞刀',   cost:0, eq:0, type:'attack', dmg:0.5, dualHit:true, desc:'0.5伤害，可抵消≤1费技能，但不能抵消刀；与回旋镖互撞双方受创。3次合成回旋镖'},
   huixuan: {name:'回旋镖', cost:0, eq:1, type:'attack', dmg:1, block:1, breakDef:true, dualHit:true, synth:true, desc:'1伤害，可抵消≤1费，无视普通防御；与飞刀互撞双方受创'},
@@ -301,7 +301,7 @@ const SKILLS = {
   leiting: {name:'雷霆',   fang:4, eq:3, type:'attack', dmg:1, desc:'1伤害（等效3费）。2次合成大雷'},
   dalei:   {name:'大雷',   cost:0, eq:4, type:'attack', dmg:1, synth:true, desc:'1伤害，等效4费'},
   dadun:   {name:'大盾',   fang:2, eq:2, type:'defense', block:3, desc:'抵挡≤3费；可压制感染/生化。2次合成金身'},
-  jinshen: {name:'金身',   cost:0, eq:0, type:'invincible', synth:true, desc:'本回合起三回合无敌；可压制感染/生化'},
+  jinshen: {name:'金身',   cost:0, eq:0, type:'invincible', synth:true, desc:'自本回合起连续三回合无敌（当回合的感染/生化侵蚀也不扣血）；可压制感染/生化'},
 };
 const SYNTH = { feidao:[3,'huixuan'], changqiang:[2,'chongfeng'], dao:[2,'dadao'], dadao:[2,'judao'],
   hanbao:[3,'hanbaowang'], nichi:[2,'danichi'], danichi:[2,'nichiwang'], ganran:[2,'shenghua'],
@@ -403,6 +403,15 @@ function resolveTurn(pId, eId){
   if (bingdongPre(pActive, pId, eActive, eId, E, '对手')) eActive = false;
   if (bingdongPre(eActive, eId, pActive, pId, P, '你')) pActive = false;
 
+  // —— 金身即时生效：自本回合起连续三回合无敌，先于持续伤害与双方攻击结算 ——
+  const jinshenPre = (myActive, myId, T, tn) => {
+    if (!myActive || myId!=='jinshen') return;
+    T.invincible = Math.max(T.invincible, 3);
+    push(`✨ ${tn}催动「金身」，本回合起连续三回合刀枪不入（侵蚀亦无法扣血）！`,'gold');
+  };
+  jinshenPre(pActive, pId, P, '你');
+  jinshenPre(eActive, eId, E, '对手');
+
   const payCost = (f, id, who) => {
     if (f.stolen && id === f.stolen.id) return;
     if (id==='xianglong2'){ f.freeXianglong--; return; }
@@ -503,8 +512,8 @@ function resolveDots(f, chosenId, who, push){
       else { hurt(f, 1); push(`☠ 生化侵蚀（第${d.stage+1}阶段需「${needName}」）！${who}先受 1 点伤害！`,'dmg'); d.stage++; }
       if (d.stage < 3) remain.push(d);
     } else if (d.type==='blackhole'){
-      hurt(f, 1);
-      push(`🕳 黑洞吞噬！${who}受到 1 点持续伤害（剩余${d.left-1}回合）。`,'dmg');
+      if (f.invincible>0){ push(`✨ ${who}金身护体，黑洞无法吞噬分毫！`,'gold'); }
+      else { hurt(f, 1); push(`🕳 黑洞吞噬！${who}受到 1 点持续伤害（剩余${d.left-1}回合）。`,'dmg'); }
       d.left--;
       if (d.left > 0) remain.push(d);
     }
@@ -605,7 +614,9 @@ function applyEffects(F, T, id, fn, tn, push, negated, reflected, oppSkill){
   if (s.heal && !F._healPre){ let h = s.heal; if (oppSkill && oppSkill.type==='reflect'){ h = 1; push(`${fn}的「治疗」受你吃激将，药效翻倍！`,'heal'); } F.hp += h; push(`🌿 ${fn}运功疗伤，生命 +${h}。`,'heal'); }
   if (s.type==='collect'){ F.collectTurns = 3; F._collectNew = true; push(`💰 ${fn}布下「收集」灵阵——本回合不产费，之后3回合每回合+1费，期间无法再布阵。`,'sys'); }
   if (s.type==='boost'){ F.wine = 1; push(`🍶 ${fn}痛饮烈酒，豪气冲天——下一次攻击伤害翻倍！`,'gold'); }
-  if (s.type==='invincible'){ F.invincible = 3; push(`✨ ${fn}催动「金身」，三回合内刀枪不入！`,'gold'); }
+  // 酒劲一次性：打出攻击技能即消耗（无论是否命中），命中则伤害翻倍
+  let wineMul = 1;
+  if (s.type==='attack' && F.wine>0){ F.wine = 0; wineMul = 2; push(`🍶 ${fn}的酒劲随「${s.name}」倾泻而出，攻势翻倍！`,'gold'); }
   if (s.halve && !negated){ T.halve = Math.max(T.halve, s.halve); push(`❄ 寒气侵体，${tn}接下来${s.halve}回合伤害减半！`,'neg'); }
   if (s.freeze && !negated && id!=='bingdong'){ T.frozen = Math.max(T.frozen, s.freeze); push(`🧊 ${tn}被「冰冻」封住经脉，${s.freeze}回合无法行动！`,'neg'); }
 
@@ -621,7 +632,7 @@ function applyEffects(F, T, id, fn, tn, push, negated, reflected, oppSkill){
   if (s.type==='attack' && s.dmg){
     let dmg = s.dmg;
     if (s._partialBlock){ dmg = Math.max(0, dmg-1); s._partialBlock = false; }
-    if (F.wine>0 && dmg>0){ dmg *= 2; F.wine = 0; push(`🍶 酒劲爆发！${fn}的「${s.name}」伤害翻倍！`, fn==='你'?'gold':'dmg'); }
+    dmg *= wineMul; // 酒劲翻倍（酒劲已在上方消耗，被抵挡则不造成伤害）
     dmg = effDmg(F, dmg);
     if (dmg>0){ hurt(T, dmg); push(`🗡 ${fn}的「${s.name}」命中！${tn}受到 ${fmt(dmg)} 点伤害！`, fn==='你'?'gold':'dmg'); }
   }
