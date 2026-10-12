@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>暗夜武侠 · 技能对战</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+  body {
+    background: radial-gradient(ellipse at top, #1a1025 0%, #0d0a12 60%, #060409 100%);
+    color:#e8dcc0; font-family:"Kaiti SC","STKaiti","KaiTi","SimSun",serif;
+    min-height:100vh; overflow-x:hidden;
+  }
+  #startScreen {
+    position:fixed; inset:0; z-index:100; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; background:radial-gradient(ellipse at center,#1c1228 0%,#08060c 80%);
+  }
+  #startScreen h1 {
+    font-size:64px; letter-spacing:16px; color:#d4af37;
+    text-shadow:0 0 30px rgba(212,175,55,.6),0 0 60px rgba(139,0,0,.5);
+    margin-bottom:12px; animation:glow 3s ease-in-out infinite;
+  }
+  @keyframes glow { 0%,100%{text-shadow:0 0 20px rgba(212,175,55,.5)} 50%{text-shadow:0 0 45px rgba(212,175,55,.9),0 0 80px rgba(178,34,34,.6)} }
+  #startScreen .sub { color:#9a8a6a; font-size:18px; letter-spacing:6px; margin-bottom:50px; }
+  .diff-row { display:flex; gap:24px; }
+  .diff-btn {
+    padding:16px 44px; font-size:22px; font-family:inherit; letter-spacing:8px; cursor:pointer;
+    background:linear-gradient(160deg,rgba(60,30,30,.6),rgba(25,15,35,.8));
+    color:#d4af37; border:1px solid #6b5320; border-radius:4px; transition:all .3s;
+  }
+  .diff-btn:hover { border-color:#d4af37; box-shadow:0 0 25px rgba(212,175,55,.4); transform:translateY(-3px); color:#ffe9a0; }
+  #startScreen .rules-link { margin-top:40px; color:#7a6a4a; font-size:14px; cursor:pointer; text-decoration:underline; }
+  #rulesModal { display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.8); }
+  #rulesModal .box {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:min(680px,92vw); max-height:80vh; overflow-y:auto; padding:30px 36px;
+    background:#141020; border:1px solid #6b5320; border-radius:6px; font-size:14px; line-height:1.9; color:#c8b890;
+  }
+  #rulesModal h3 { color:#d4af37; margin:10px 0 4px; }
+  #rulesModal .close { float:right; cursor:pointer; color:#d4af37; font-size:20px; }
+  #gameScreen { display:none; max-width:1100px; margin:0 auto; padding:14px 18px 30px; }
+  header { text-align:center; padding:6px 0 12px; border-bottom:1px solid rgba(212,175,55,.25); margin-bottom:14px; }
+  header h2 { font-size:26px; letter-spacing:10px; color:#d4af37; }
+  header .turn { color:#8a7a5a; font-size:13px; margin-top:2px; letter-spacing:3px; }
+  .fighter {
+    display:flex; align-items:center; gap:16px; padding:10px 16px; margin-bottom:10px;
+    background:linear-gradient(90deg,rgba(40,20,30,.55),rgba(20,14,30,.55));
+    border:1px solid rgba(212,175,55,.3); border-radius:6px; position:relative;
+  }
+  .fighter .avatar { font-size:40px; width:64px; height:64px; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(circle,#2a1a35,#120c1c); border:1px solid #6b5320; border-radius:50%; }
+  .fighter .info { flex:1; }
+  .fighter .name { font-size:18px; letter-spacing:4px; color:#ffe9a0; margin-bottom:6px; }
+  .bar-row { display:flex; align-items:center; gap:8px; margin:3px 0; font-size:12px; }
+  .bar-row .label { width:52px; color:#a89868; letter-spacing:2px; }
+  .bar { flex:1; height:12px; background:#1a1220; border:1px solid #3a2c18; border-radius:6px; overflow:hidden; }
+  .bar > div { height:100%; transition:width .5s ease; }
+  .hp-fill { background:linear-gradient(90deg,#6b0f1a,#c0392b,#e74c3c); box-shadow:0 0 8px rgba(231,76,60,.6); }
+  .energy-fill { background:linear-gradient(90deg,#8a6a10,#d4af37); box-shadow:0 0 8px rgba(212,175,55,.5); }
+  .fang-fill { background:linear-gradient(90deg,#0f4a5a,#2aa8c0); box-shadow:0 0 8px rgba(42,168,192,.5); }
+  .bar-row .val { width:60px; text-align:right; color:#e8dcc0; }
+  .status-icons { display:flex; gap:6px; margin-top:4px; flex-wrap:wrap; min-height:20px; }
+  .st { font-size:11px; padding:1px 8px; border-radius:3px; letter-spacing:1px;
+    background:rgba(80,40,40,.6); border:1px solid #8a4a3a; color:#ffb0a0; }
+  .st.buff { background:rgba(40,70,50,.6); border-color:#4a8a5a; color:#a0e8b0; }
+  .st.info { background:rgba(50,50,80,.6); border-color:#6a6aaa; color:#b0b0f0; }
+  #arena {
+    position:relative; min-height:170px; margin:10px 0; padding:14px;
+    background:radial-gradient(ellipse at center,rgba(60,25,35,.35),rgba(12,8,18,.6));
+    border:1px solid rgba(139,0,0,.4); border-radius:8px; overflow:hidden;
+  }
+  #clash { display:flex; align-items:center; justify-content:center; gap:30px; min-height:60px; }
+  .clash-skill { font-size:30px; letter-spacing:6px; padding:8px 26px; border-radius:6px; opacity:0;
+    border:1px solid transparent; transition:all .4s; }
+  .clash-skill.show { opacity:1; transform:scale(1.05); }
+  .clash-skill.p { color:#ffd970; border-color:rgba(212,175,55,.5); background:rgba(60,45,10,.4); text-shadow:0 0 18px rgba(255,215,0,.7); }
+  .clash-skill.e { color:#ff7a6a; border-color:rgba(178,34,34,.5); background:rgba(60,15,15,.4); text-shadow:0 0 18px rgba(255,60,60,.7); }
+  #vs { font-size:26px; color:#8b2222; opacity:0; transition:opacity .4s; }
+  #vs.show { opacity:1; animation:pulse .8s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.25); color:#ff4444;} }
+  #log { margin-top:10px; max-height:180px; overflow-y:auto; font-size:13.5px; line-height:1.85;
+    padding:6px 10px; background:rgba(0,0,0,.3); border-radius:6px; color:#c0b090; }
+  #log .dmg { color:#ff8a7a; } #log .heal { color:#7ae89a; } #log .sys { color:#8a9ac0; }
+  #log .gold { color:#ffd970; } #log .neg { color:#b0a0d0; }
+  #log::-webkit-scrollbar { width:6px; } #log::-webkit-scrollbar-thumb { background:#4a3a20; border-radius:3px; }
+  .float-num { position:absolute; font-size:34px; font-weight:bold; pointer-events:none; z-index:50;
+    animation:floatUp 1.4s ease-out forwards; text-shadow:0 0 12px currentColor; }
+  @keyframes floatUp { 0%{opacity:1; transform:translateY(0) scale(1.2);} 100%{opacity:0; transform:translateY(-70px) scale(.9);} }
+  .shake { animation:shake .45s; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-9px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(4px)} }
+  #skillTitle { text-align:center; color:#9a8a5a; letter-spacing:5px; font-size:14px; margin:8px 0; }
+  #skills { display:grid; grid-template-columns:repeat(auto-fill,minmax(118px,1fr)); gap:9px; }
+  .skill-btn { position:relative; padding:9px 6px 7px; cursor:pointer; text-align:center; font-family:inherit;
+    background:linear-gradient(165deg,rgba(50,32,42,.75),rgba(22,15,32,.9));
+    border:1px solid #5a4520; border-radius:6px; color:#e8dcc0; transition:all .2s; }
+  .skill-btn:hover:not(:disabled) { border-color:#d4af37; box-shadow:0 0 16px rgba(212,175,55,.35); transform:translateY(-2px); }
+  .skill-btn:disabled { opacity:.32; cursor:not-allowed; filter:grayscale(.7); }
+  .skill-btn .sname { font-size:17px; letter-spacing:3px; }
+  .skill-btn .scost { font-size:11px; color:#d4af37; margin-top:2px; }
+  .skill-btn .scost .fang-cost { color:#4ac0d8; }
+  .skill-btn .sprog { font-size:10px; color:#8a7a9a; margin-top:2px; }
+  .skill-btn .stype { position:absolute; top:3px; right:5px; font-size:9px; color:#7a6a8a; }
+  .skill-btn.synth { border-color:#8a3a5a; background:linear-gradient(165deg,rgba(70,25,50,.8),rgba(30,12,35,.95)); }
+  .skill-btn.synth .sname { color:#ffb0d0; }
+  .skill-btn.ult { border-color:#aa2020; background:linear-gradient(165deg,rgba(80,15,20,.85),rgba(35,8,15,.95)); }
+  .skill-btn.ult .sname { color:#ff6a5a; }
+  #overScreen { display:none; position:fixed; inset:0; z-index:150; background:rgba(5,3,8,.92);
+    flex-direction:column; align-items:center; justify-content:center; }
+  #overScreen h1 { font-size:56px; letter-spacing:14px; margin-bottom:30px; }
+  #overScreen .win { color:#d4af37; text-shadow:0 0 40px rgba(212,175,55,.8); }
+  #overScreen .lose { color:#a03030; text-shadow:0 0 40px rgba(160,30,30,.8); }
+  @media (max-width:640px){
+    #startScreen h1{font-size:38px; letter-spacing:8px;}
+    #skills{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));}
+    .clash-skill{font-size:20px; padding:6px 12px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="startScreen">
+  <h1>暗夜武侠</h1>
+  <div class="sub">—— 江 湖 一 对 一 · 回 合 制 技 能 对 决 ——</div>
+  <div class="diff-row">
+    <button class="diff-btn" onclick="startGame('easy')">初 窥</button>
+    <button class="diff-btn" onclick="startGame('normal')">登 堂</button>
+    <button class="diff-btn" onclick="startGame('hard')">宗 师</button>
+  </div>
+  <div class="rules-link" onclick="document.getElementById('rulesModal').style.display='block'">查看武学秘籍（规则）</div>
+</div>
+
+<div id="rulesModal" onclick="if(event.target===this)this.style.display='none'">
+  <div class="box">
+    <span class="close" onclick="document.getElementById('rulesModal').style.display='none'">✕</span>
+    <h3>基础规则</h3>
+    回合制，双方同时出牌，每回合各打出一个技能。初始1点生命，生命可含0.5，归零则败。
+    普通费用通过「集气」「收集」获得；「防」通过「防御」获得，二者不通用。
+    「收集」布阵当回合不产出费用，从下一回合起连续3回合每回合+1费，增益期间无法再次收集。
+    <h3>抵消规则</h3>
+    等效费用为 n 的技能可抵消等效费用不超过 n+1 的技能。攻击互撞时，费用差≤1则两相抵消，否则低费者被破。
+    特例①：飞刀可抵消≤1费技能，但唯独不能抵消「刀」——刀遇飞刀，劈落飞刀并直取对手。
+    特例②：飞刀与回旋镖互撞时不抵消、双方同时受创——飞刀对飞刀各掉0.5，回旋镖对回旋镖各掉1，回旋镖对飞刀：飞刀方掉1、回旋镖方掉0.5。
+    非攻击技能即使被抵消，自身效果仍然生效。
+    <h3>降龙与如来（拆分支付）</h3>
+    「降龙」之路：可直接花3费出「降龙」；或花3费购得「龙爪」×2次使用机会（每回合出一次，1伤害），两个龙爪打出后免费获得一个「降龙」。
+    「如来」之路：可直接花4费打出「观音-观音-如来」三连击（共3伤害，≥3费防御全挡，2费以下仅挡一段）；
+    或花4费购得「观音」×2次使用机会（每回合出一次，1伤害），两个观音打出后免费获得一个「如来」（单段1伤害）。
+    <h3>感染与生化</h3>
+    侵蚀伤害优先于对手本回合技能结算：若对手未能压制而倒地，其本回合技能无法施展，不能与你同归于尽。
+    压制手段：感染的次回合，以及生化的前两个阶段，出「防御」「大盾」「金身」均可压制；生化第三阶段只能出「大盾」或「金身」。
+    特例：若出「治疗」，先结算+0.5回血，再扣侵蚀的1点伤害。
+    <h3>合成进阶</h3>
+    技能打出即累计次数（被抵消也算）：飞刀×3→回旋镖（破普通防御）；长枪×2→冲锋；刀×2→大刀→巨刀；
+    汉堡×3→汉堡王（对手出你吃时额外+1）；你吃×2→大你吃→你吃王；感染×2→生化；气功×2→叶问；
+    吸取×2→大吸取→虫洞（反弹攻击）；降龙×2→龙怒；
+    火焰/寒冰/小电/雷霆/大盾各×2→烈焰/冰冻/大闪/大雷/金身（无敌三回合）。
+    合成技均为一次性：打出后即消耗，需重新累计合成。唯「回旋镖」例外：一经合成永久解锁，可无限使用。
+    <h3>特殊机制</h3>
+    黑洞：三回合共3伤害。吸取/虫洞：夺取对手本回合技能下次使用。冰冻：封锁行动两回合。金身：无敌三回合。
+    伽玛射线：20费彩蛋，直接获胜。烈焰、冰冻、大闪、大雷及所有合成技均不耗资源。
+  </div>
+</div>
+
+<div id="gameScreen">
+  <header>
+    <h2>暗 夜 武 侠</h2>
+    <div class="turn" id="turnLabel">第 一 回 合</div>
+  </header>
+
+  <div class="fighter" id="aiPanel">
+    <div class="avatar">👹</div>
+    <div class="info">
+      <div class="name" id="aiName">魔教护法</div>
+      <div class="bar-row"><span class="label">生命</span><div class="bar"><div class="hp-fill" id="aiHpBar" style="width:100%"></div></div><span class="val" id="aiHpVal">1</span></div>
+      <div class="bar-row"><span class="label">费用</span><div class="bar"><div class="energy-fill" id="aiEnBar" style="width:0%"></div></div><span class="val" id="aiEnVal">0</span></div>
+      <div class="bar-row"><span class="label">防</span><div class="bar"><div class="fang-fill" id="aiFangBar" style="width:0%"></div></div><span class="val" id="aiFangVal">0</span></div>
+      <div class="status-icons" id="aiStatus"></div>
+    </div>
+  </div>
+
+  <div id="arena">
+    <div id="clash">
+      <div class="clash-skill p" id="clashP">？</div>
+      <div id="vs">⚔</div>
+      <div class="clash-skill e" id="clashE">？</div>
+    </div>
+    <div id="log"></div>
+  </div>
+
+  <div class="fighter" id="playerPanel">
+    <div class="avatar">🗡️</div>
+    <div class="info">
+      <div class="name">你 · 无名侠客</div>
+      <div class="bar-row"><span class="label">生命</span><div class="bar"><div class="hp-fill" id="pHpBar" style="width:100%"></div></div><span class="val" id="pHpVal">1</span></div>
+      <div class="bar-row"><span class="label">费用</span><div class="bar"><div class="energy-fill" id="pEnBar" style="width:0%"></div></div><span class="val" id="pEnVal">0</span></div>
+      <div class="bar-row"><span class="label">防</span><div class="bar"><div class="fang-fill" id="pFangBar" style="width:0%"></div></div><span class="val" id="pFangVal">0</span></div>
+      <div class="status-icons" id="pStatus"></div>
+    </div>
+  </div>
+
+  <div id="skillTitle">— 选 择 本 回 合 武 学 —</div>
+  <div id="skills"></div>
+</div>
+
+<div id="overScreen">
+  <h1 id="overTitle"></h1>
+  <div class="diff-row">
+    <button class="diff-btn" onclick="location.reload()">再 战 江 湖</button>
+  </div>
+</div>
+
+<script>
+/* ==================== 技能定义 ==================== */
+const SKILLS = {
+  jiqi:    {name:'集气',   cost:0, eq:0, type:'resource', gainEnergy:1, desc:'获得1费'},
+  fangyu:  {name:'防御',   cost:0, eq:0, type:'defense', block:1, gainFang:1, desc:'抵挡1费及以下攻击(含飞刀)，获得1防；可压制感染/生化前两个阶段'},
+  feidao:  {name:'飞刀',   cost:0, eq:0, type:'attack', dmg:0.5, dualHit:true, desc:'0.5伤害，可抵消≤1费技能，但不能抵消刀；与回旋镖互撞双方受创。3次合成回旋镖'},
+  huixuan: {name:'回旋镖', cost:0, eq:1, type:'attack', dmg:1, block:1, breakDef:true, dualHit:true, synth:true, desc:'1伤害，可抵消≤1费，无视普通防御；与飞刀互撞双方受创'},
+  changqiang:{name:'长枪', cost:1, eq:1, type:'attack', dmg:1, desc:'1伤害，会被你吃/汉堡系克制。2次合成冲锋'},
+  chongfeng:{name:'冲锋',  cost:0, eq:4, type:'attack', dmg:1, synth:true, desc:'1伤害，等效4费'},
+  dao:     {name:'刀',     cost:1, eq:1, type:'attack', dmg:1, beatsFeidao:true, desc:'1伤害，可劈落飞刀。2次合成大刀'},
+  dadao:   {name:'大刀',   cost:0, eq:2, type:'attack', dmg:1, synth:true, desc:'1伤害。2次合成巨刀'},
+  judao:   {name:'巨刀',   cost:0, eq:6, type:'attack', dmg:1, synth:true, desc:'1伤害，等效6费'},
+  hanbao:  {name:'汉堡',   cost:1, eq:1, type:'defense', block:1, desc:'抵挡≤1费攻击。对手出你吃则计数+1。3次合成汉堡王'},
+  hanbaowang:{name:'汉堡王',cost:0, eq:5, type:'attack', dmg:1, synth:true, desc:'1伤害，等效5费'},
+  nichi:   {name:'你吃',   cost:1, eq:1, type:'reflect', block:3, reflects:['changqiang','chongfeng','ganran','shenghua','qigong'], desc:'反弹长枪/冲锋/感染/生化/气功，抵挡≤3费攻击。2次合成大你吃'},
+  danichi: {name:'大你吃', cost:0, eq:3, type:'reflect', block:4, synth:true, reflects:['changqiang','chongfeng','ganran','shenghua','qigong'], desc:'反弹同你吃，抵挡≤4费攻击。2次合成你吃王'},
+  nichiwang:{name:'你吃王',cost:0, eq:6, type:'attack', dmg:1, synth:true, desc:'1伤害，等效6费'},
+  ganran:  {name:'感染',   cost:1, eq:1, type:'dotdef', block:1, dot:'infect', desc:'抵挡≤1费攻击；次回合对手需防御/大盾/金身否则先受1伤害(优先结算)。2次合成生化'},
+  shenghua:{name:'生化',   cost:0, eq:3, type:'dotdef', block:3, dot:'bio', synth:true, desc:'抵挡≤3费；对手前两阶段需防御/大盾/金身，第三阶段仅大盾/金身(伤害优先结算)。会被你吃反弹'},
+  qigong:  {name:'气功',   cost:2, eq:2, type:'attack', dmg:1, desc:'1伤害，会被你吃反弹。2次合成叶问'},
+  yewen:   {name:'叶问',   cost:0, eq:6, type:'attack', dmg:1, synth:true, desc:'1伤害，等效6费'},
+  zhiliao: {name:'治疗',   cost:2, eq:2, type:'heal', heal:0.5, block:3, desc:'恢复0.5生命，抵挡≤3费；受感染/生化侵蚀时先回血再扣血。若被你吃影响则恢复1'},
+  xiqu:    {name:'吸取',   cost:2, eq:2, type:'absorb', absorbUpTo:3, desc:'吸取对手本回合≤3费技能下次使用。2次合成大吸取'},
+  daxiqu:  {name:'大吸取', cost:0, eq:3, type:'absorb', absorbUpTo:4, synth:true, desc:'吸取≤4费技能。2次合成虫洞'},
+  chongdong:{name:'虫洞',  cost:0, eq:6, type:'absorb', absorbUpTo:7, reflectAttack:true, synth:true, desc:'吸取≤7费技能并反弹攻击'},
+  shouji:  {name:'收集',   cost:2, eq:2, type:'collect', block:3, desc:'布阵当回合不产费，之后3回合每回合+1费，期间不可再布阵；抵挡≤3费(若抵挡3费技能则灵阵被破)'},
+  longzhua:{name:'龙爪',   cost:3, eq:1, type:'attack', dmg:1, chargeable:'zhua', desc:'3费购得2次使用机会（每回合1次，1伤害）。两个龙爪打出后免费获得降龙'},
+  xianglong:{name:'降龙',  cost:3, eq:3, type:'attack', dmg:1, desc:'直接3费打出，1伤害。2次合成龙怒'},
+  xianglong2:{name:'降龙·赐',cost:0, eq:3, type:'attack', dmg:1, synth:true, token:true, desc:'龙爪集齐所得，免费打出，1伤害'},
+  longnu:  {name:'龙怒',   cost:0, eq:7, type:'attack', dmg:1, synth:true, desc:'1伤害，等效7费'},
+  guanyin: {name:'观音',   cost:4, eq:2, type:'attack', dmg:1, block:3, chargeable:'yin', desc:'4费购得2次使用机会（每回合1次，1伤害，可抵消≤3费）。两个观音打出后免费获得如来'},
+  rulai:   {name:'如来',   cost:4, eq:4, type:'attack', dmg:3, multi:3, desc:'观音-观音-如来三连击，共3伤害。≥3费防御全挡，2费以下仅挡一段'},
+  rulai2:  {name:'如来·赐', cost:0, eq:4, type:'attack', dmg:1, synth:true, token:true, desc:'观音集齐所得，免费打出，单段1伤害'},
+  heidong: {name:'黑洞',   cost:5, eq:5, type:'dot', dot:'blackhole', dmg:1, desc:'本回合起连续3回合各造成1伤害'},
+  gama:    {name:'伽玛射线',cost:20, eq:20, type:'attack', instantKill:true, ult:true, desc:'【彩蛋】直接消灭对手'},
+  huoyan:  {name:'火焰',   fang:2, eq:1, type:'attack', dmg:1, antiDefend:true, desc:'1伤害。若对手用防御抵挡，其下回合不能用防御。2次合成烈焰'},
+  lieyan:  {name:'烈焰',   cost:0, eq:2, type:'attack', dmg:1, antiDefend:true, negates:['hanbing','bingdong'], synth:true, desc:'1伤害，抵消寒冰/冰冻'},
+  hanbing: {name:'寒冰',   fang:2, eq:1, type:'defense', block:1, halve:2, weakTo:['nichi','danichi','huoyan','lieyan'], desc:'抵挡≤1费攻击，对手两回合伤害减半。2次合成冰冻'},
+  bingdong:{name:'冰冻',   cost:0, eq:2, type:'defense', block:2, freeze:2, weakTo:['nichi','danichi','huoyan','lieyan'], synth:true, desc:'抵挡≤2费攻击；冰封对手本回合与下回合（技能失效不耗资源）且伤害减半；被≥3费攻击则冰封失效仅减半；你吃/大你吃/火焰/烈焰可使其冰封与寒气失效'},
+  xiaodian:{name:'小电',   fang:3, eq:2, type:'attack', dmg:1, desc:'1伤害（等效2费）。2次合成大闪'},
+  dashan:  {name:'大闪',   cost:0, eq:3, type:'attack', dmg:1, synth:true, desc:'1伤害，等效3费'},
+  leiting: {name:'雷霆',   fang:4, eq:3, type:'attack', dmg:1, desc:'1伤害（等效3费）。2次合成大雷'},
+  dalei:   {name:'大雷',   cost:0, eq:4, type:'attack', dmg:1, synth:true, desc:'1伤害，等效4费'},
+  dadun:   {name:'大盾',   fang:2, eq:2, type:'defense', block:3, desc:'抵挡≤3费；可压制感染/生化。2次合成金身'},
+  jinshen: {name:'金身',   cost:0, eq:0, type:'invincible', synth:true, desc:'本回合起三回合无敌；可压制感染/生化'},
+};
+const SYNTH = { feidao:[3,'huixuan'], changqiang:[2,'chongfeng'], dao:[2,'dadao'], dadao:[2,'judao'],
+  hanbao:[3,'hanbaowang'], nichi:[2,'danichi'], danichi:[2,'nichiwang'], ganran:[2,'shenghua'],
+  qigong:[2,'yewen'], xiqu:[2,'daxiqu'], daxiqu:[2,'chongdong'], xianglong:[2,'longnu'],
+  huoyan:[2,'lieyan'], hanbing:[2,'bingdong'], xiaodian:[2,'dashan'], leiting:[2,'dalei'], dadun:[2,'jinshen'] };
+const COUNT_ALIAS = { xianglong2:'xianglong', rulai2:'rulai' };
+const BASE_SKILLS = ['jiqi','fangyu','feidao','changqiang','dao','hanbao','nichi','ganran','qigong','zhiliao','xiqu','shouji','longzhua','xianglong','guanyin','rulai','heidong','gama','huoyan','hanbing','xiaodian','leiting','dadun'];
+const DIFF_NAMES = { easy:'初窥弟子', normal:'登堂高手', hard:'宗师魔头' };
+
+/* ==================== 状态 ==================== */
+let P, E, turn, difficulty, over, locked;
+function newFighter(){ return { hp:1, energy:0, fang:0, counts:{}, synthCharges:{}, stolen:null,
+  freeXianglong:0, freeRulai:0, zhuaCharges:0, yinCharges:0, _healPre:false,
+  dots:[], halve:0, frozen:0, noDefend:0, invincible:0, collectTurns:0, infectCD:0, _collectNew:false, _passive:0 }; }
+
+function startGame(diff){
+  difficulty = diff; P = newFighter(); E = newFighter(); turn = 1; over = false; locked = false;
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'block';
+  document.getElementById('aiName').textContent = DIFF_NAMES[diff];
+  document.getElementById('log').innerHTML = '';
+  log(`夜色如墨，华山之巅。你遭遇了【${DIFF_NAMES[diff]}】，生死一战，就此开始！`,'sys');
+  log('提示：先用「集气」积攒费用，或用「防御」积攒「防」。','sys');
+  render();
+}
+
+/* ==================== 可用技能 ==================== */
+function synthUnlocked(f, id){
+  for (const [base,[need,result]] of Object.entries(SYNTH))
+    if (result === id) return (f.counts[base]||0) >= need;
+  return false;
+}
+function chargesOf(f, id){
+  if (id==='longzhua') return f.zhuaCharges;
+  if (id==='guanyin') return f.yinCharges;
+  return 0;
+}
+function available(f){
+  const list = [];
+  for (const id of BASE_SKILLS){
+    const s = SKILLS[id];
+    if (s.synth && !synthUnlocked(f,id)) continue;
+    if (s.chargeable){ if (chargesOf(f,id)<=0 && f.energy < s.cost) continue; }
+    else if ((s.cost||0) > f.energy || (s.fang||0) > f.fang) continue;
+    if ((id==='ganran'||id==='shenghua') && f.infectCD > 0) continue;
+    if (id==='fangyu' && f.noDefend > 0) continue;
+    if (id==='shouji' && f.collectTurns > 0) continue; // 灵阵增益期间无法再次收集
+    list.push(id);
+  }
+  if (f.freeXianglong > 0) list.push('xianglong2');
+  if (f.freeRulai > 0) list.push('rulai2');
+  // 已解锁的合成技（回旋镖/大刀/金身等）进入可选列表
+  for (const id in SKILLS){
+    const s = SKILLS[id];
+    if (!s.synth || s.token || list.includes(id)) continue;
+    if ((f.synthCharges[id]||0) <= 0) continue; // 合成技需持有次数，打出即消耗
+    if ((s.cost||0) > f.energy || (s.fang||0) > f.fang) continue;
+    if (id==='shenghua' && f.infectCD > 0) continue;
+    list.push(id);
+  }
+  if (f.stolen && f.stolen.usable && !list.includes(f.stolen.id)) list.push(f.stolen.id);
+  return list;
+}
+
+/* ==================== 回合流程 ==================== */
+function play(pId){
+  if (over || locked) return;
+  locked = true;
+  const eId = aiChoose();
+  resolveTurn(pId, eId);
+}
+
+function resolveTurn(pId, eId){
+  const ps = SKILLS[pId], es = SKILLS[eId];
+  showClash(ps.name, es.name);
+  const L = [];
+  const push = (t,c)=>L.push([t,c]);
+  P._healPre = false; E._healPre = false;
+
+  if (P.frozen > 0) push(`你被冰封，本回合无法行动！`,'neg');
+  if (E.frozen > 0) push(`对手被冰封，本回合无法行动！`,'gold');
+  let pActive = P.frozen <= 0, eActive = E.frozen <= 0;
+
+  // —— 冰冻即时生效：本回合即冻结+伤害减半；被≥3费技能攻击则冻结失效、仅减半 ——
+  const bingdongPre = (myActive, myId, oppActiveNow, oppId, T, tn) => {
+    if (!myActive || myId!=='bingdong' || !oppActiveNow) return false;
+    if (SKILLS.bingdong.weakTo.includes(oppId)) return false; // 被你吃/大你吃/火焰/烈焰完全抵消
+    const os = SKILLS[oppId];
+    T.halve = Math.max(T.halve, 2);
+    push(`❄ 寒气侵体，${tn}本回合与下回合伤害减半！`,'neg');
+    if (os.type==='attack' && os.eq>=3){
+      push(`⚔ ${tn}的「${os.name}」势大力沉，冰封未能生效，仅寒气减其攻势！`,'neg');
+      return false;
+    }
+    T.frozen = Math.max(T.frozen, 2);
+    push(`🧊 ${tn}被「冰冻」封住经脉，本回合与下回合无法行动（技能失效且不耗资源）！`,'neg');
+    return true;
+  };
+  if (bingdongPre(pActive, pId, eActive, eId, E, '对手')) eActive = false;
+  if (bingdongPre(eActive, eId, pActive, pId, P, '你')) pActive = false;
+
+  const payCost = (f, id, who) => {
+    if (f.stolen && id === f.stolen.id) return;
+    if (id==='xianglong2'){ f.freeXianglong--; return; }
+    if (id==='rulai2'){ f.freeRulai--; return; }
+    const s = SKILLS[id];
+    if (s.chargeable){
+      if (s.chargeable==='zhua'){ if (f.zhuaCharges>0) f.zhuaCharges--; else { f.energy-=3; f.zhuaCharges=1; push(`🐉 ${who}耗费3点真气，购得「龙爪」×2（本次打出其一）！`,'sys'); } }
+      else { if (f.yinCharges>0) f.yinCharges--; else { f.energy-=4; f.yinCharges=1; push(`🙏 ${who}耗费4点真气，购得「观音」×2（本次打出其一）！`,'sys'); } }
+      return;
+    }
+    if (s.synth && id!=='huixuan') f.synthCharges[id] = (f.synthCharges[id]||1) - 1; // 合成技一次性：打出即消耗（回旋镖例外，永久解锁）
+    f.energy -= s.cost||0; f.fang -= s.fang||0;
+  };
+  if (pActive){ payCost(P, pId, '你'); if (pId==='ganran'||pId==='shenghua') P.infectCD = 3; }
+  if (eActive){ payCost(E, eId, '对手'); if (eId==='ganran'||eId==='shenghua') E.infectCD = 3; }
+
+  const addCount = (f, id, who, push, n) => {
+    const cid = COUNT_ALIAS[id] || id;
+    for (let i=0; i<(n||1); i++){
+      f.counts[cid] = (f.counts[cid]||0) + 1;
+      if (cid==='longzhua' && f.counts.longzhua % 2 === 0){ f.freeXianglong++; push(`🐉 ${who}的两个龙爪均已打出，获得免费「降龙」一次！`,'gold'); }
+      if (cid==='guanyin' && f.counts.guanyin % 2 === 0){ f.freeRulai++; push(`🙏 ${who}的两个观音均已打出，获得免费「如来」（单段）一次！`,'gold'); }
+      if (SYNTH[cid] && f.counts[cid] % SYNTH[cid][0] === 0){
+        const res = SYNTH[cid][1];
+        f.synthCharges[res] = (f.synthCharges[res]||0) + 1;
+        push(res==='huixuan' ? `✦ ${who}的「${SKILLS[cid].name}」大成，合成【回旋镖】（永久解锁，可无限使用）！` : `✦ ${who}的「${SKILLS[cid].name}」大成，合成【${SKILLS[res].name}】（一次性，打出后需重新合成）！`,'gold');
+      }
+    }
+  };
+  if (pActive){
+    addCount(P, pId, '你', push);
+    if (pId==='hanbao' && eActive && (eId==='nichi'||eId==='danichi')){ addCount(P,'hanbao','你',push,1); push('对手的「你吃」让汉堡大快朵颐，合成计数额外+1！','gold'); }
+    if (P.stolen && pId===P.stolen.id && P.stolen.usable) P.stolen = null;
+  }
+  if (eActive){
+    addCount(E, eId, '对手', push);
+    if (eId==='hanbao' && pActive && (pId==='nichi'||pId==='danichi')) addCount(E,'hanbao','对手',push,1);
+    if (E.stolen && eId===E.stolen.id && E.stolen.usable) E.stolen = null;
+  }
+
+  // --- 持续伤害优先结算（先于双方技能；治疗可先行回血） ---
+  resolveDots(P, pActive ? pId : null, '你', push);
+  resolveDots(E, eActive ? eId : null, '对手', push);
+
+  const pDeadEarly = P.hp<=0, eDeadEarly = E.hp<=0;
+  if (pDeadEarly && pActive) push(`☠ 你在出招前已被侵蚀击倒，本回合技能未能施展！`,'dmg');
+  if (eDeadEarly && eActive) push(`☠ 对手在出招前已被侵蚀击倒，其本回合技能未能施展！`,'gold');
+
+  if (!pDeadEarly && !eDeadEarly){
+    if (pActive && eActive) interact(P, E, pId, eId, '你', '对手', push);
+    else if (pActive) applyEffects(P, E, pId, '你', '对手', push, false, false, null);
+    else if (eActive) applyEffects(E, P, eId, '对手', '你', push, false, false, null);
+  } else {
+    if (!pDeadEarly && pActive) applyEffects(P, E, pId, '你', '对手', push, false, false, null);
+    if (!eDeadEarly && eActive) applyEffects(E, P, eId, '对手', '你', push, false, false, null);
+  }
+
+  for (const f of [P,E]){
+    if (f.halve>0) f.halve--;
+    if (f.frozen>0) f.frozen--;
+    if (f.noDefend>0) f.noDefend--;
+    if (f.invincible>0) f.invincible--;
+    if (f.infectCD>0) f.infectCD--;
+    if (f._collectNew){ f._collectNew = false; } // 布阵当回合不产费
+    else if (f.collectTurns>0){ f.energy++; f.collectTurns--; }
+  }
+  // 电脑进攻欲望：连续未出攻击则递增
+  E._passive = (eActive && ['attack','dot','dotdef','absorb'].includes(SKILLS[eId].type)) ? 0 : (E._passive||0) + 1;
+
+  setTimeout(()=>{
+    for (const [t,c] of L) log(t,c);
+    if (P.hp<=0 && E.hp<=0) endGame('draw');
+    else if (E.hp<=0) endGame('win');
+    else if (P.hp<=0) endGame('lose');
+    else { turn++; locked=false; render(); }
+  }, 900);
+}
+
+function resolveDots(f, chosenId, who, push){
+  if (!f.dots.length) return;
+  // 治疗优先：先回血再扣侵蚀伤害
+  if (chosenId==='zhiliao' && f.dots.some(d=>d.type==='infect'||d.type==='bio')){
+    f.hp += 0.5; f._healPre = true;
+    push(`🌿 ${who}抢在毒发前运功「治疗」，生命先 +0.5！`,'heal');
+  }
+  const remain = [];
+  for (const d of f.dots){
+    if (d.type==='infect'){
+      // 防御 / 大盾 / 金身 均可压制
+      if (['fangyu','dadun','jinshen'].includes(chosenId)) push(`${who}以「${SKILLS[chosenId].name}」驱散了感染之毒。`,'sys');
+      else { hurt(f, 1); push(`☠ 感染发作！${who}未及时压制，先受 1 点伤害！`,'dmg'); }
+    } else if (d.type==='bio'){
+      // 前两个阶段：防御/大盾/金身；第三阶段：仅大盾/金身
+      const ok = d.stage < 2 ? ['fangyu','dadun','jinshen'].includes(chosenId)
+                             : ['dadun','jinshen'].includes(chosenId);
+      const needName = d.stage < 2 ? '防御/大盾/金身' : '大盾/金身';
+      if (ok){ push(`${who}以「${SKILLS[chosenId].name}」压制了生化侵蚀（第${d.stage+1}阶段）。`,'sys'); d.stage++; }
+      else { hurt(f, 1); push(`☠ 生化侵蚀（第${d.stage+1}阶段需「${needName}」）！${who}先受 1 点伤害！`,'dmg'); d.stage++; }
+      if (d.stage < 3) remain.push(d);
+    } else if (d.type==='blackhole'){
+      hurt(f, 1);
+      push(`🕳 黑洞吞噬！${who}受到 1 点持续伤害（剩余${d.left-1}回合）。`,'dmg');
+      d.left--;
+      if (d.left > 0) remain.push(d);
+    }
+  }
+  f.dots = remain;
+}
+
+/* ---- 双方技能交互 ---- */
+function interact(A, B, aId, bId, an, bn, push){
+  const a = SKILLS[aId], b = SKILLS[bId];
+  let aNeg = false, bNeg = false, aRefl = false, bRefl = false;
+
+  if (b.type==='reflect' && b.reflects.includes(aId)){ aRefl = true; push(`🔄 ${bn}的「${b.name}」将${an}的「${a.name}」反弹了回去！`,'neg'); }
+  if (a.type==='reflect' && a.reflects.includes(bId)){ bRefl = true; push(`🔄 ${an}的「${a.name}」将${bn}的「${b.name}」反弹了回去！`,'neg'); }
+
+  if (!bRefl && a.type==='absorb' && b.eq <= a.absorbUpTo){ doAbsorb(A, B, aId, bId, an, bn, push); if (b.type==='attack') bNeg = true; }
+  if (!aRefl && b.type==='absorb' && a.eq <= b.absorbUpTo){ doAbsorb(B, A, bId, aId, bn, an, push); if (a.type==='attack') aNeg = true; }
+
+  if (a.negates && a.negates.includes(bId)){ bNeg = true; push(`🔥 ${an}的「${a.name}」烧穿了${bn}的「${b.name}」！`,'gold'); }
+  if (b.negates && b.negates.includes(aId)){ aNeg = true; push(`🔥 ${bn}的「${b.name}」烧穿了${an}的「${a.name}」！`,'dmg'); }
+  if (a.weakTo && a.weakTo.includes(bId) && !bNeg){ aNeg = true; push(`${an}的「${a.name}」被${bn}的「${b.name}」所破！`,'neg'); }
+  if (b.weakTo && b.weakTo.includes(aId) && !aNeg){ bNeg = true; push(`${bn}的「${b.name}」被${an}的「${a.name}」所破！`,'neg'); }
+
+  clashPair(A, B, aId, bId, an, bn, push,
+    (x)=>{aNeg = aNeg||x;}, (x)=>{bNeg = bNeg||x;}, aRefl, bRefl, aNeg, bNeg);
+
+  applyEffects(A, B, aId, an, bn, push, aNeg, aRefl, b);
+  applyEffects(B, A, bId, bn, an, push, bNeg, bRefl, a);
+}
+
+function clashPair(A, B, aId, bId, an, bn, push, setANeg, setBNeg, aRefl, bRefl, aNegated, bNegated){
+  const a = SKILLS[aId], b = SKILLS[bId];
+  const aAtk = a.type==='attack' || a.type==='dot';
+  const bAtk = b.type==='attack' || b.type==='dot';
+
+  const tryBlock = (defF, defId, defN, atk, atkN, setAtkNeg) => {
+    const defS = SKILLS[defId];
+    if (defS.block == null) return;
+    if (atk.breakDef && defId==='fangyu'){ push(`🪃 ${atkN}的「回旋镖」旋开了${defN}的普通防御！`,'gold'); return; }
+    if (atk.eq <= defS.block){
+      if (atk.multi && defS.eq < 3){ atk._partialBlock = true; push(`${defN}的「${defS.name}」仅挡下「如来」一段掌风，余势不减！`,'neg'); return; }
+      setAtkNeg(true);
+      push(`🛡 ${defN}的「${defS.name}」挡下了${atkN}的「${atk.name}」！`,'neg');
+      if (atk.antiDefend && defId==='fangyu'){ defF.noDefend = 2; push(`🔥 火焰封脉！${defN}下一回合无法使用「防御」！`,'dmg'); }
+      if (defId==='shouji' && atk.eq>=3){ defF.collectTurns = 0; push(`${defN}的「收集」灵阵被破，不再产出费用。`,'neg'); }
+    }
+  };
+  // 抵挡判定只看抵挡值；被克制（negated）只会让防御方的减益效果失效，不影响抵挡
+  if (aAtk && !bAtk && !aRefl) tryBlock(B, bId, bn, a, an, setANeg);
+  if (bAtk && !aAtk && !bRefl) tryBlock(A, aId, an, b, bn, setBNeg);
+
+  if (aAtk && bAtk){
+    // 特例①：飞刀不能抵消刀
+    const feidaoVsDao = (faId, daId, faN, daN, setFaNeg) => {
+      if (faId==='feidao' && SKILLS[daId].beatsFeidao){
+        setFaNeg(true);
+        push(`🔪 ${daN}的「${SKILLS[daId].name}」劈落飞刀，直取${faN}！`, daN==='你'?'gold':'dmg');
+        return true;
+      }
+      return false;
+    };
+    if (feidaoVsDao(aId, bId, an, bn, setANeg)) return;
+    if (feidaoVsDao(bId, aId, bn, an, setBNeg)) return;
+
+    // 特例②：飞刀/回旋镖互撞——不抵消，双方同时受创
+    if (a.dualHit && b.dualHit){
+      push(`🗡 暗器交错！「${a.name}」与「${b.name}」擦肩而过，双方同时受创！`,'sys');
+      return; // 双方均不抵消，各自伤害在 applyEffects 中结算
+    }
+
+    const diff = a.eq - b.eq;
+    if (Math.abs(diff) <= 1){
+      setANeg(true); setBNeg(true);
+      push(`⚔ 「${a.name}」与「${b.name}」相撞，气劲四散，两相抵消！`,'sys');
+    } else if (diff > 0){
+      setBNeg(true); push(`⚔ ${an}的「${a.name}」以雄浑内力震碎了${bn}的「${b.name}」！`,'gold');
+    } else {
+      setANeg(true); push(`⚔ ${bn}的「${b.name}」以雄浑内力震碎了${an}的「${a.name}」！`,'dmg');
+    }
+  }
+}
+
+function applyEffects(F, T, id, fn, tn, push, negated, reflected, oppSkill){
+  const s = SKILLS[id];
+  if (reflected){
+    if (s.dmg || s.type==='attack'){ hurt(F, effDmg(F, s.dmg||1)); push(`💥 ${fn}被自己的「${s.name}」反噬，受到 ${fmt(s.dmg||1)} 点伤害！`,'dmg'); }
+    if (s.dot==='infect'){ addDot(F,{type:'infect'}); push(`☠ 感染之毒反噬${fn}自身！`,'dmg'); }
+    if (s.dot==='bio'){ addDot(F,{type:'bio',stage:0}); push(`☠ 生化之力反噬${fn}自身！`,'dmg'); }
+    return;
+  }
+  if (s.gainEnergy){ F.energy += s.gainEnergy; push(`✨ ${fn}运转「集气」，费用 +${s.gainEnergy}。`,'sys'); }
+  if (s.gainFang){ F.fang += s.gainFang; push(`🛡 ${fn}凝神「防御」，防 +1。`,'sys'); }
+  if (s.heal && !F._healPre){ let h = s.heal; if (oppSkill && oppSkill.type==='reflect'){ h = 1; push(`${fn}的「治疗」受你吃激将，药效翻倍！`,'heal'); } F.hp += h; push(`🌿 ${fn}运功疗伤，生命 +${h}。`,'heal'); }
+  if (s.type==='collect'){ F.collectTurns = 3; F._collectNew = true; push(`💰 ${fn}布下「收集」灵阵——本回合不产费，之后3回合每回合+1费，期间无法再布阵。`,'sys'); }
+  if (s.type==='invincible'){ F.invincible = 3; push(`✨ ${fn}催动「金身」，三回合内刀枪不入！`,'gold'); }
+  if (s.halve && !negated){ T.halve = Math.max(T.halve, s.halve); push(`❄ 寒气侵体，${tn}接下来${s.halve}回合伤害减半！`,'neg'); }
+  if (s.freeze && !negated && id!=='bingdong'){ T.frozen = Math.max(T.frozen, s.freeze); push(`🧊 ${tn}被「冰冻」封住经脉，${s.freeze}回合无法行动！`,'neg'); }
+
+  if (negated) return;
+  if (T.invincible > 0 && (s.type==='attack' || s.dot)){
+    push(`✨ ${tn}金身护体，${fn}的「${s.name}」无法侵入分毫！`,'gold'); return;
+  }
+
+  if (s.instantKill){ T.hp = 0; push(`☢️ ${fn}耗尽二十年功力发出「伽玛射线」！天地失色，${tn}灰飞烟灭！`,'dmg'); return; }
+  if (s.dot==='blackhole'){ hurt(T, effDmg(F,1)); addDot(T,{type:'blackhole',left:2}); push(`🕳 ${fn}祭出「黑洞」！${tn}受 1 点伤害，且未来2回合仍将被吞噬！`,'dmg'); return; }
+  if (s.dot==='infect'){ addDot(T,{type:'infect'}); push(`☠ ${fn}的「感染」之毒已种入${tn}体内，下回合需以「防御/大盾/金身」应对！`,'dmg'); }
+  if (s.dot==='bio'){ addDot(T,{type:'bio',stage:0}); push(`☠ ${fn}的「生化」侵蚀${tn}！前两阶段需「防御/大盾/金身」，第三阶段仅「大盾/金身」！`,'dmg'); }
+  if (s.type==='attack' && s.dmg){
+    let dmg = s.dmg;
+    if (s._partialBlock){ dmg = Math.max(0, dmg-1); s._partialBlock = false; }
+    dmg = effDmg(F, dmg);
+    if (dmg>0){ hurt(T, dmg); push(`🗡 ${fn}的「${s.name}」命中！${tn}受到 ${fmt(dmg)} 点伤害！`, fn==='你'?'gold':'dmg'); }
+  }
+}
+
+function effDmg(F, dmg){ return F.halve>0 ? dmg/2 : dmg; }
+function fmt(n){ return n % 1 === 0 ? String(n) : n.toFixed(1); }
+function hurt(f, dmg){
+  if (f.invincible > 0){ floatNum(f===P?'playerPanel':'aiPanel', '金身无敌', '#ffd970'); return; }
+  f.hp = Math.round((f.hp - dmg)*10)/10;
+  floatNum(f===P?'playerPanel':'aiPanel', '-'+fmt(dmg), '#ff6a5a');
+  shakePanel(f===P?'playerPanel':'aiPanel');
+}
+function addDot(f, d){
+  if (f.dots.some(x=>x.type===d.type)) return;
+  f.dots.push(d);
+}
+function doAbsorb(A, B, aId, bId, an, bn, push){
+  const b = SKILLS[bId];
+  push(`🌀 ${an}的「${SKILLS[aId].name}」张开旋涡，吸取了${bn}的「${b.name}」！`,'gold');
+  if (bId==='jiqi'){ A.energy++; push(`${an}汲取到一缕真气，费用+1！`,'gold'); }
+  else if (bId==='fangyu'){ A.fang++; push(`${an}汲取到护体罡气，防+1！`,'gold'); }
+  else { A.stolen = { id:bId, usable:true }; push(`${an}获得了「${b.name}」，下回合可使用一次！`,'gold'); }
+  if (SKILLS[aId].reflectAttack && b.type==='attack'){
+    hurt(B, effDmg(B, b.dmg||1));
+    push(`🌌 虫洞倒转时空！「${b.name}」被反弹回${bn}，${bn}受 ${fmt(b.dmg||1)} 点伤害！`,'dmg');
+  }
+}
+
+/* ==================== AI ==================== */
+function aiChoose(){
+  const opts = available(E);
+  if (!opts.length) return 'jiqi';
+  if (difficulty==='easy') return opts[Math.floor(Math.random()*opts.length)];
+  return difficulty==='normal' ? aiNormal(opts) : aiHard(opts);
+}
+/* —— 预判：枚举玩家本回合费用可出的牌，评估其威胁 —— */
+function playerThreat(){
+  const t = { maxEq:-1, strongest:null, canKill:false, hasFeidao:false, hasDot:false, hasFreeze:false, hasAbsorb:false };
+  for (const id of available(P)){
+    const s = SKILLS[id];
+    if (s.type==='attack'){
+      if (s.eq > t.maxEq){ t.maxEq = s.eq; t.strongest = id; }
+      let d = s.dmg||0; if (P.halve>0) d /= 2;
+      if (s.instantKill || (d >= E.hp && E.invincible<=0)) t.canKill = true;
+      if (id==='feidao') t.hasFeidao = true;
+    }
+    if (s.dot==='blackhole' && E.hp<=1 && E.invincible<=0) t.canKill = true;
+    if (s.dot==='infect'||s.dot==='bio') t.hasDot = true;
+    if (s.freeze) t.hasFreeze = true;
+    if (s.type==='absorb') t.hasAbsorb = true;
+  }
+  return t;
+}
+/* —— 侵蚀压制评估：感染/生化伤害先于出招结算，压不住可能直接倒地 —— */
+function dotPressure(){
+  let n = 0;
+  for (const d of E.dots) if (d.type==='infect' || d.type==='bio') n++;
+  return n;
+}
+function dotAvoided(id){
+  let n = 0;
+  for (const d of E.dots){
+    if (d.type==='infect'){ if (['fangyu','dadun','jinshen'].includes(id)) n++; }
+    else if (d.type==='bio'){ if ((d.stage<2 ? ['fangyu','dadun','jinshen'] : ['dadun','jinshen']).includes(id)) n++; }
+  }
+  return n;
+}
+function aiNormal(opts){
+  const t = playerThreat();
+  const score = {};
+  for (const id of opts){
+    const s = SKILLS[id]; let v = Math.random()*2;
+    let myDmg = s.dmg||0; if (E.halve>0) myDmg /= 2;
+    if (myDmg >= P.hp && P.invincible<=0 && s.type==='attack'){   // 能杀就杀；但对手也能杀我时，低费斩杀是送死
+      if (!t.canKill) v += 60;
+      else if (s.eq >= t.maxEq + 2) v += 60;
+      else if (Math.abs(s.eq - t.maxEq) <= 1) v += 20;
+      else v -= 15;
+    }
+    if (t.canKill){                                                       // 预判玩家可杀我 → 防守
+      if (id==='jinshen') v += 50;
+      if (s.block!=null && s.type!=='attack' && t.maxEq >= 0 && t.maxEq <= s.block) v += 35;
+      if (s.type==='attack' && s.eq >= t.maxEq+2) v += 25;                // 以攻破攻
+      if (s.heal) v += 10;
+    }
+    if (s.type==='attack'){
+      v += 4.5 + s.eq*0.5;
+      if (P.invincible>0) v -= 8;
+      if (P.frozen>0) v += 4;
+      if (P.fang<=0) v += 2;
+      v += (E._passive||0) * 2;                                           // 久守必攻
+      if (s.beatsFeidao && t.hasFeidao) v += 3;
+    }
+    if (id==='jiqi') v += E.energy < 2 ? 4 : 0.5;
+    if (id==='fangyu') v += E.fang < 2 ? 3 : 0.5;
+    if (id==='shouji') v += (E.collectTurns<=0 && !t.canKill) ? 3 : 0;
+    if (s.heal && E.hp <= 1.5) v += 6;
+    if (SYNTH[id] && (E.counts[id]||0) === SYNTH[id][0]-1) v += 3;
+    if (s.dot) v += 3;
+    // —— 身中感染/生化：按规则优先压制（毒发先于出招，压不住可能直接倒地）——
+    const dotN = dotPressure();
+    if (dotN > 0){
+      const rest = dotN - dotAvoided(id);
+      if (rest <= 0) v += dotN >= E.hp ? 80 : 25;   // 全数压制：保命 / 免伤
+      else if (rest >= E.hp) v -= 80;               // 压不住必倒，出了也白出
+      else v += 10;                                 // 部分减伤
+      if (id==='zhiliao' && E.hp+0.5 > dotN) v += dotN >= E.hp ? 70 : 8;
+    }
+    score[id] = v;
+  }
+  return bestOf(score);
+}
+function aiHard(opts){
+  const t = playerThreat();
+  const score = {};
+  for (const id of opts){
+    const s = SKILLS[id]; let v = Math.random();
+    if (s.instantKill) v += 1000;
+    let myDmg = s.dmg||0; if (E.halve>0) myDmg /= 2;
+    // —— 斩杀最优先（但对手同回合也能杀我时，低等效费用的斩杀等于送死）——
+    if (P.invincible<=0){
+      if (s.type==='attack' && myDmg >= P.hp){
+        if (!t.canKill) v += 500;                           // 单方面斩杀
+        else if (s.eq >= t.maxEq + 2) v += 500;             // 对撞稳赢的斩杀
+        else if (Math.abs(s.eq - t.maxEq) <= 1) v += 200;   // 对撞抵消，至少保命
+        else v -= 80;                                       // 对撞必败，等于送死
+      }
+      if (s.dot==='blackhole' && P.hp<=1 && !t.canKill) v += 300;
+    }
+    // —— 预判玩家出牌，化解其杀招 ——
+    if (t.canKill){
+      if (id==='jinshen') v += 400;                                        // 金身无敌保命
+      if (s.block!=null && s.type!=='attack' && t.maxEq >= 0 && t.maxEq <= s.block) v += 160;  // 挡得住其最强一击
+      if (s.type==='reflect' && s.reflects && s.reflects.includes(t.strongest)) v += 110;      // 恰好反弹其杀招
+      if (s.type==='absorb' && t.strongest && SKILLS[t.strongest].eq <= (s.absorbUpTo||0)) v += 95; // 吸走其杀招
+      if (s.type==='attack' && s.eq >= t.maxEq+2) v += 100;                // 以更高等效费用将其震碎
+      if (s.heal && E.hp + 0.5 > 1) v += 30;
+    } else if (t.maxEq >= 2){
+      if (s.block!=null && s.type!=='attack' && t.maxEq <= s.block) v += 20;
+      if (s.type==='reflect') v += 12;
+      if (id==='jinshen' && E.hp<=2) v += 40;
+    }
+    // —— 进攻性 ——
+    if (s.type==='attack'){
+      v += 7 + s.eq*0.8;
+      if (P.invincible>0) v -= 30;
+      if (P.frozen>0) v += 8;                    // 趁冰打劫
+      if (P.fang<=0) v += 4;                     // 对手无防可用
+      if (P.energy<2) v += 3;                    // 对手费弱
+      if (P.dots.length>0) v += 4;               // 对手带毒，持续施压
+      v += (E._passive||0) * 4;                  // 久守必攻，进攻欲望递增
+      if (s.beatsFeidao && t.hasFeidao) v += 6;  // 刀克飞刀
+      if (s.antiDefend && P.fang>=1) v += 4;     // 火焰封防
+    }
+    if ((s.dot==='infect'||s.dot==='bio') && !t.canKill) v += 7;
+    if (s.dot==='blackhole' && !t.canKill) v += 8;
+    if (s.freeze && !t.canKill) v += 6;
+    if (s.type==='absorb' && P.energy>=2) v += 5;
+    // —— 运营（仅在无致命威胁时）——
+    if (!t.canKill){
+      if (id==='jiqi') v += E.energy<=1 ? 5 : (E.energy<4?2:0.2);
+      if (id==='fangyu') v += E.fang<=1 ? 4 : 0.3;
+      if (id==='shouji') v += (E.collectTurns<=0 && E.energy>=2 && E.energy<=6) ? 5 : 0;
+      if (s.heal) v += E.hp<=1 ? 8 : (E.hp<=2?4:0);
+      if (SYNTH[id]) v += 1.5 + (E.counts[id]||0)*2;
+      if (id==='longzhua') v += E.zhuaCharges>0 ? 5 : 2;
+      if (id==='guanyin') v += E.yinCharges>0 ? 5 : 2;
+    }
+    if (s.token) v += t.canKill ? 12 : 7;        // 免费馈赠技随时好用
+    // —— 身中感染/生化：压制优先于一切（毒发先于出招，压不住连斩杀都打不出来）——
+    const dotN = dotPressure();
+    if (dotN > 0){
+      const rest = dotN - dotAvoided(id);
+      if (rest <= 0) v += dotN >= E.hp ? 600 : 60;  // 全数压制：保命 / 免伤
+      else if (rest >= E.hp) v -= 600;              // 压不住必倒，技能无法施展
+      else v += 20;                                 // 部分减伤
+      if (id==='zhiliao' && E.hp+0.5 > dotN) v += dotN >= E.hp ? 550 : 20; // 治疗先回血顶住
+    }
+    score[id] = v;
+  }
+  return bestOf(score);
+}
+function bestOf(score){ return Object.entries(score).sort((a,b)=>b[1]-a[1])[0][0]; }
+
+/* ==================== 渲染 ==================== */
+function render(){
+  renderFighter(P, 'p'); renderFighter(E, 'ai'); renderSkills();
+  document.getElementById('turnLabel').textContent = '第 ' + cnNum(turn) + ' 回 合';
+}
+function renderFighter(f, pre){
+  const cap = 10;
+  document.getElementById(pre+'HpBar').style.width = Math.min(100, f.hp/5*100) + '%';
+  document.getElementById(pre+'HpVal').textContent = fmt(Math.max(0,f.hp));
+  document.getElementById(pre+'EnBar').style.width = Math.min(100, f.energy/cap*100) + '%';
+  document.getElementById(pre+'EnVal').textContent = f.energy;
+  document.getElementById(pre+'FangBar').style.width = Math.min(100, f.fang/cap*100) + '%';
+  document.getElementById(pre+'FangVal').textContent = f.fang;
+  const st = [];
+  if (f.invincible>0) st.push(['✨金身'+f.invincible,'buff']);
+  if (f.frozen>0) st.push(['🧊冰封'+f.frozen,'']);
+  if (f.halve>0) st.push(['❄虚弱'+f.halve,'']);
+  if (f.noDefend>0) st.push(['🔥禁防'+f.noDefend,'']);
+  if (f.collectTurns>0) st.push(['💰收集'+f.collectTurns,'buff']);
+  if (f.infectCD>0) st.push(['☠感染冷却'+f.infectCD,'info']);
+  if (f.freeXianglong>0) st.push(['🐉免费降龙×'+f.freeXianglong,'buff']);
+  if (f.freeRulai>0) st.push(['🙏免费如来×'+f.freeRulai,'buff']);
+  if (f.zhuaCharges>0) st.push(['龙爪余'+f.zhuaCharges+'次','info']);
+  if (f.yinCharges>0) st.push(['观音余'+f.yinCharges+'次','info']);
+  for (const d of f.dots){
+    if (d.type==='infect') st.push(['☠感染','']);
+    if (d.type==='bio') st.push(['☠生化·阶段'+(d.stage+1),'']);
+    if (d.type==='blackhole') st.push(['🕳黑洞'+d.left,'']);
+  }
+  if (f.stolen && f.stolen.usable) st.push(['🌀窃取:'+SKILLS[f.stolen.id].name,'info']);
+  for (const [base,[need,result]] of Object.entries(SYNTH)){
+    const c = f.counts[base]||0, r = c % need;
+    if (r>0) st.push([SKILLS[base].name+' '+r+'/'+need,'info']);
+    if ((f.synthCharges[result]||0)>0) st.push(['✦'+SKILLS[result].name+'×'+f.synthCharges[result],'gold']);
+  }
+  document.getElementById(pre==='p'?'pStatus':'aiStatus').innerHTML = st.map(([t,c])=>`<span class="st ${c}">${t}</span>`).join('');
+}
+function renderSkills(){
+  const box = document.getElementById('skills');
+  const opts = new Set(available(P));
+  box.innerHTML = '';
+  const ids = [...BASE_SKILLS].sort((a,b)=>{
+    const sa=SKILLS[a], sb=SKILLS[b];
+    return ((sa.cost||0)+(sa.fang||0)) - ((sb.cost||0)+(sb.fang||0)) || sa.eq - sb.eq;
+  });
+  if (P.freeXianglong>0) ids.push('xianglong2');
+  if (P.freeRulai>0) ids.push('rulai2');
+  // 持有次数的合成技显示为按钮
+  for (const id in SKILLS){
+    const s = SKILLS[id];
+    if (s.synth && !s.token && (P.synthCharges[id]||0)>0 && !ids.includes(id)) ids.push(id);
+  }
+  for (const id of ids){
+    const s = SKILLS[id];
+    if (s.synth && !s.token && (P.synthCharges[id]||0)<=0) continue;
+    const usable = opts.has(id);
+    const btn = document.createElement('button');
+    btn.className = 'skill-btn' + (s.synth?' synth':'') + (s.ult?' ult':'');
+    let costTxt = s.fang ? `<span class="fang-cost">${s.fang}防</span>` : (s.cost?`${s.cost}费`:'免费');
+    let prog = '';
+    if (id==='longzhua'){
+      if (P.zhuaCharges>0){ costTxt = '免费'; prog = `剩余${P.zhuaCharges}次 · 集2赠降龙`; }
+      else prog = `3费=2次`;
+    }
+    else if (id==='xianglong') prog = `${Math.min(P.counts.xianglong||0,2)}/2 → 龙怒`;
+    else if (id==='guanyin'){
+      if (P.yinCharges>0){ costTxt = '免费'; prog = `剩余${P.yinCharges}次 · 集2赠如来`; }
+      else prog = `4费=2次`;
+    }
+    else if (id==='rulai') prog = '三连击共3伤害';
+    else if (SYNTH[id]){ const [need,res]=SYNTH[id]; const ch=P.synthCharges[res]||0;
+      prog = ch>0 ? `已合成【${SKILLS[res].name}】×${ch}` : `${(P.counts[id]||0)%need}/${need} → ${SKILLS[res].name}`; }
+    else if (s.synth && !s.token) prog = id==='huixuan' ? '永久解锁 · 无限使用' : `一次性 · 剩余${P.synthCharges[id]||0}次`;
+    if ((id==='ganran'||id==='shenghua') && P.infectCD>0) prog = `冷却中 ${P.infectCD}回合`;
+    if (id==='fangyu' && P.noDefend>0) prog = '被火焰封锁';
+    if (id==='shouji' && P.collectTurns>0) prog = `灵阵运转中 ${P.collectTurns}回合·不可再用`;
+    btn.innerHTML = `<span class="stype">${typeTag(s)}</span><div class="sname">${s.name}</div><div class="scost">${costTxt} · 等效${s.eq}费</div><div class="sprog">${prog||s.desc.slice(0,12)}</div>`;
+    btn.title = s.desc;
+    btn.disabled = !usable;
+    btn.onclick = ()=>play(id);
+    box.appendChild(btn);
+  }
+  if (P.stolen && P.stolen.usable && !opts.has(P.stolen.id)){
+    const s = SKILLS[P.stolen.id];
+    const btn = document.createElement('button');
+    btn.className = 'skill-btn synth';
+    btn.innerHTML = `<span class="stype">窃取</span><div class="sname">${s.name}</div><div class="scost">一次性</div><div class="sprog">吸取所得</div>`;
+    btn.onclick = ()=>play(P.stolen.id);
+    box.appendChild(btn);
+  }
+}
+function typeTag(s){
+  return {attack:'攻',defense:'防',reflect:'弹',resource:'资',heal:'疗',absorb:'吸',dotdef:'蚀',dot:'蚀',collect:'资',invincible:'圣'}[s.type]||'技';
+}
+
+/* ==================== 特效与日志 ==================== */
+function showClash(pn, en){
+  const cp = document.getElementById('clashP'), ce = document.getElementById('clashE'), vs = document.getElementById('vs');
+  cp.textContent = pn; ce.textContent = en;
+  cp.classList.remove('show'); ce.classList.remove('show'); vs.classList.remove('show');
+  void cp.offsetWidth;
+  cp.classList.add('show'); ce.classList.add('show'); vs.classList.add('show');
+}
+function log(t, cls){
+  const el = document.getElementById('log');
+  el.innerHTML += `<div class="${cls||''}">▸ ${t}</div>`;
+  el.scrollTop = el.scrollHeight;
+}
+function floatNum(panelId, txt, color){
+  const panel = document.getElementById(panelId);
+  const n = document.createElement('div');
+  n.className = 'float-num'; n.textContent = txt; n.style.color = color;
+  n.style.left = (30 + Math.random()*60) + 'px'; n.style.top = '10px';
+  panel.appendChild(n);
+  setTimeout(()=>n.remove(), 1400);
+}
+function shakePanel(id){ const p=document.getElementById(id); p.classList.remove('shake'); void p.offsetWidth; p.classList.add('shake'); }
+
+/* ==================== 结束 ==================== */
+function endGame(result){
+  over = true;
+  setTimeout(()=>{
+    const sc = document.getElementById('overScreen'), t = document.getElementById('overTitle');
+    if (result==='win'){ t.textContent = '你 赢 了'; t.className='win'; }
+    else if (result==='lose'){ t.textContent = '你 败 了'; t.className='lose'; }
+    else { t.textContent = '同 归 于 尽'; t.className='lose'; }
+    sc.style.display = 'flex';
+  }, 1200);
+}
+function cnNum(n){
+  const d = '零一二三四五六七八九';
+  if (n<=10) return n===10?'十':d[n];
+  if (n<20) return '十'+d[n%10];
+  return d[Math.floor(n/10)]+'十'+(n%10?d[n%10]:'');
+}
+</script>
+</body>
+</html>
